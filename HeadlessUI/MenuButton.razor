@@ -1,0 +1,91 @@
+﻿<HtmlElement TagName="@TagName"
+             @ref="rootElement"
+             @onpointerup="HandlePointerUp"
+             PreventDefaultOn="@(new string[] { "onpointerup" })"
+             @attributes="AdditionalAttributes"
+             @onkeydown="HandleKeyDown"
+             @onfocus="HandleFocus"
+             Id="@Id"
+             aria-controls="@Menu.MenuItemsReference.Id"
+             aria-haspopup="true"
+             aria-expanded="@(Menu.MenuState == MenuState.Open)">
+    @ChildContent
+</HtmlElement>
+
+@code {
+    [Parameter]
+    public bool IsDisabled { get; set; }
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+    [Parameter]
+    public string TagName { get; set; } = "button";
+
+    [Parameter]
+    public string Id { get; set; } = Guid.NewGuid().ToString("N");
+    public ElementReference ElementReference => rootElement.ElementReference;
+
+    [CascadingParameter]
+    public Menu Menu { get; set; }
+
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object> AdditionalAttributes { get; set; }
+
+    private HtmlElement rootElement;
+
+    protected override void OnInitialized()
+    {
+        Menu.MenuButtonReference = this;
+    }
+
+    private async Task HandleKeyDown(KeyboardEventArgs eventArgs)
+    {
+        switch (eventArgs.Key)
+        {
+            case KeyboardKeys.Space:
+            case KeyboardKeys.Enter:
+            case KeyboardKeys.ArrowDown:
+            {
+                await Menu.OpenMenu();
+                await Menu.SetMenuItemsFocus();
+                Menu.GoToItem(Focus.FirstItem);
+                break;
+            }
+            case KeyboardKeys.ArrowUp:
+            {
+                await Menu.OpenMenu();
+                await Menu.SetMenuItemsFocus();
+                Menu.GoToItem(Focus.LastItem);
+                break;
+            }
+
+        }
+    }
+
+    private async Task HandlePointerUp(PointerEventArgs eventArgs)
+    {
+        if (IsDisabled) return;
+        if (Menu.MenuState == MenuState.Open)
+        {
+            Menu.CloseMenu();
+            await Task.Yield();
+            await rootElement.ElementReference.FocusAsync();
+        }
+        else
+        {
+            await Menu.OpenMenu();
+            await Task.Yield();
+            await Menu.SetMenuItemsFocus();
+        }
+    }
+
+    private async Task HandleFocus(EventArgs eventArgs)
+    {
+        if (Menu.MenuState == MenuState.Open)
+        {
+            await Menu.SetMenuItemsFocus();
+        }
+    }
+
+}

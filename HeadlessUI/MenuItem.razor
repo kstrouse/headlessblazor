@@ -1,0 +1,80 @@
+﻿@implements IDisposable
+
+<HtmlElement TagName="@TagName" @attributes="AdditionalAttributes"
+             PreventDefaultOn="@(new string[] { IsDisabled ? "onclick" : "", "onfocus" })"
+             @onclick="HandleClick"
+             @onfocus="HandleFocus"
+             @onpointermove="HandlePointerMove"
+             @onmouseout="HandlePointerLeave"
+             role="menuitem">
+    @ChildContent(this)
+</HtmlElement>
+
+@code {
+    [Parameter]
+    public string TextValue { get; set; } = "";
+
+    [Parameter]
+    public string TagName { get; set; }
+
+    [Parameter]
+    public bool IsDisabled { get; set; }
+
+    [Parameter]
+    public RenderFragment<MenuItem> ChildContent { get; set; }
+
+    [Parameter(CaptureUnmatchedValues = true)]
+    public IReadOnlyDictionary<string, object> AdditionalAttributes { get; set; }
+
+    [CascadingParameter]
+    public Menu Menu { get; set; }
+
+    public ElementReference Element { get; set; }
+
+    public bool IsActive => Menu.IsActiveItem(this);
+
+    public string Id => Guid.NewGuid().ToString("N");
+
+
+    protected override void OnInitialized()
+    {
+        Menu.RegisterItem(this);
+    }
+
+    public void Dispose()
+    {
+        Menu.UnregisterItem(this);
+    }
+
+    public async Task HandleClick(MouseEventArgs e)
+    {
+        if (IsDisabled) return;
+        Menu.CloseMenu();
+        await Menu.SetButtonFocus();
+    }
+
+    public void HandleFocus(EventArgs e)
+    {
+        if (IsDisabled)
+        {
+            Menu.GoToItem(Focus.Nothing);
+            return;
+        }
+        Menu.GoToItem(this);
+    }
+
+    public void HandlePointerMove(PointerEventArgs e)
+    {
+        if (IsDisabled) return;
+        if (Menu.IsActiveItem(this)) return;
+        Menu.GoToItem(this);
+    }
+
+    public void HandlePointerLeave(MouseEventArgs e)
+    {
+        if (IsDisabled) return;
+        if (!Menu.IsActiveItem(this)) return;
+        Menu.GoToItem(Focus.Nothing);
+    }
+
+}

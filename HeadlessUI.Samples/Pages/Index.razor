@@ -1,0 +1,38 @@
+﻿@page "/"
+
+<h1>Hello, world!</h1>
+
+Welcome to your new app.
+
+<SurveyPrompt Title="How is Blazor working for you?" />
+<br />
+<br />
+
+<style>
+    button:focus {
+        background-color: red;
+    }
+
+    div:focus {
+        background-color: red;
+    }
+
+    a:focus {
+        background-color: blue;
+    }
+</style>
+
+<Menu>
+    <MenuButton>Menu Sample</MenuButton>
+    <MenuItems>
+        <MenuItem TagName="a" href="#" IsDisabled="true" TextValue="Hello World 1">
+            Hello World 1: isActive = @context.IsActive
+        </MenuItem>
+        <MenuItem TagName="a" href="#" TextValue="Hello World 2">
+            Hello World 2: isActive = @context.IsActive
+        </MenuItem>
+        <MenuItem TagName="span" TextValue="Hello World 3">
+            Hello World 3: isActive = @context.IsActive
+        </MenuItem>
+    </MenuItems>
+</Menu>

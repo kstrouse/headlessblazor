@@ -1,0 +1,189 @@
+﻿@inject IJSRuntime jsRuntime
+
+<HtmlElement TagName="@TagName">
+    <CascadingValue Value="this" TValue="Menu">
+        @ChildContent
+    </CascadingValue>
+</HtmlElement>
+Search: @SearchQuery;
+
+@code {
+    public MenuState MenuState { get; private set; } = MenuState.Closed;
+
+    private System.Timers.Timer debounceTimer;
+
+    [Parameter]
+    public string TagName { get; set; } = "";
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+    public MenuItems MenuItemsReference { get; set; }
+    public MenuButton MenuButtonReference { get; set; }
+
+    private List<MenuItem> menuItems = new List<MenuItem>();
+
+    private MenuItem activeItem;
+    public string SearchQuery { get; set; } = "";
+
+    public IJSObjectReference JSModule { get; set; }
+    public IJSObjectReference JSMenu { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        JSModule = await jsRuntime.InvokeAsync<IJSObjectReference>("import", "./_content/HeadlessUI/menu.js");
+        JSMenu = await JSModule.InvokeAsync<IJSObjectReference>("makeMenu");
+    }
+
+    public async Task OpenMenu()
+    {
+        MenuState = MenuState.Open;
+        StateHasChanged();
+        if (MenuItemsReference.ElementReference.Id == null)
+        {
+            //If menu items haven't rendered we won't have an ElementReference
+            //so wait a tick for elements to be rendered and set
+            await Task.Yield();
+        }
+    }
+
+    public void CloseMenu()
+    {
+        MenuState = MenuState.Closed;
+        StateHasChanged();
+    }
+
+    public bool IsActiveItem(MenuItem item) => activeItem == item;
+
+    public string ActiveItemId => activeItem?.Id;
+
+    public void GoToItem(Focus focus)
+    {
+        switch (focus)
+        {
+            case Focus.FirstItem:
+            {
+                activeItem = menuItems.FirstOrDefault(mi => !mi.IsDisabled);
+                break;
+            }
+            case Focus.PreviousItem:
+            {
+                var reversedMenuItems = menuItems.ToList();
+                reversedMenuItems.Reverse();
+                bool foundActiveItem = false;
+                var itemIndex = reversedMenuItems.FindIndex(0, mi =>
+                {
+                    if (mi == activeItem)
+                    {
+                        foundActiveItem = true;
+                        return false;
+                    }
+                    return foundActiveItem && !mi.IsDisabled;
+                });
+                if (itemIndex != -1)
+                    activeItem = reversedMenuItems[itemIndex];
+                else if (!foundActiveItem)
+                    GoToItem(Focus.LastItem);
+                break;
+            }
+            case Focus.NextItem:
+            {
+                bool foundActiveItem = false;
+                var itemIndex = menuItems.FindIndex(0, mi =>
+                {
+                    if (mi == activeItem)
+                    {
+                        foundActiveItem = true;
+                        return false;
+                    }
+                    return foundActiveItem && !mi.IsDisabled;
+                });
+                if (itemIndex != -1)
+                    activeItem = menuItems[itemIndex];
+                else if (!foundActiveItem)
+                    GoToItem(Focus.FirstItem);
+                break;
+            }
+            case Focus.LastItem:
+            {
+                activeItem = menuItems.LastOrDefault(mi => !mi.IsDisabled);
+                break;
+            }
+            default:
+            {
+                activeItem = null;
+                break;
+            }
+        }
+        SearchQuery = "";
+        StateHasChanged();
+    }
+
+    public void GoToItem(MenuItem item)
+    {
+        SearchQuery = "";
+        if (!menuItems.Contains(item))
+            throw new InvalidOperationException("Cannot goto item that isn't in the menu.");
+        activeItem = item;
+        StateHasChanged();
+    }
+
+    public void Search(string value)
+    {
+        SearchQuery += value;
+        activeItem = menuItems.FirstOrDefault(mi => mi.TextValue.StartsWith(SearchQuery, StringComparison.OrdinalIgnoreCase) && !mi.IsDisabled);
+        debounceTimer = new System.Timers.Timer(350);
+        debounceTimer.Elapsed += DebounceElapsed;
+        debounceTimer.Enabled = true;
+        StateHasChanged();
+    }
+
+    private async void DebounceElapsed(Object source, System.Timers.ElapsedEventArgs e)
+    {
+        await ClearSearch();
+        StateHasChanged();
+        debounceTimer.Dispose();
+    }
+
+    public void ClearDebounceTimer()
+    {
+        if (debounceTimer != null)
+        {
+            debounceTimer.Enabled = false;
+            debounceTimer.Dispose();
+        }
+    }
+
+    public async Task ClearSearch()
+    {
+        SearchQuery = "";
+        await JSMenu.InvokeVoidAsync("clearSearch");
+    }
+
+    public void RegisterItem(MenuItem item)
+    {
+        menuItems.Add(item);
+    }
+    public void UnregisterItem(MenuItem item)
+    {
+        if (IsActiveItem(item))
+        {
+            GoToItem(Focus.NextItem);
+            if (activeItem == null)
+            {
+                GoToItem(Focus.FirstItem);
+            }
+        }
+        menuItems.Remove(item);
+    }
+
+    public async Task SetButtonFocus()
+    {
+        await MenuButtonReference.ElementReference.FocusAsync();
+    }
+
+    public async Task SetMenuItemsFocus()
+    {
+        await MenuItemsReference.ElementReference.FocusAsync();
+    }
+}
