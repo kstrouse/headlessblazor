@@ -1,21 +1,25 @@
 ﻿@implements IDisposable
 
-<HtmlElement TagName="@TagName" @attributes="AdditionalAttributes"
-             PreventDefaultOn="@(new string[] { IsDisabled ? "onclick" : "", "onfocus" })"
+<HtmlElement TagName="@TagName" 
+             @attributes="AdditionalAttributes"
+             PreventDefaultOn="@(new[] { IsDisabled ? "onclick" : "", "onfocus" })"
              @onclick="HandleClick"
              @onfocus="HandleFocus"
              @onpointermove="HandlePointerMove"
              @onmouseout="HandlePointerLeave"
-             role="menuitem">
+             role="menuitem"
+             @ref="Container">
     @ChildContent(this)
 </HtmlElement>
 
 @code {
+    private ElementReference testRef;
+
     [Parameter]
     public string TextValue { get; set; } = "";
 
     [Parameter]
-    public string TagName { get; set; }
+    public string TagName { get; set; } = "a";
 
     [Parameter]
     public bool IsDisabled { get; set; }
@@ -29,12 +33,10 @@
     [CascadingParameter]
     public Menu Menu { get; set; }
 
-    public ElementReference Element { get; set; }
+    public HtmlElement Container { get; set; }
 
-    public bool IsActive => Menu.IsActiveItem(this);
 
-    public string Id => Guid.NewGuid().ToString("N");
-
+    public string Id => Container.Id;
 
     protected override void OnInitialized()
     {
