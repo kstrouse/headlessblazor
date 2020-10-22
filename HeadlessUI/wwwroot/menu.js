@@ -1,27 +1,43 @@
-﻿function RegisterKeyDownHandler(el, callback) {
+﻿export function makeMenu(menuObj) {
+    return new Menu(menuObj);
 }
 
-export function makeMenu(button) {
-    return new Menu(button);
+const MenuState = {
+    Closed: 0,
+    Open: 1
 }
 
 class Menu {
-    constructor() {
+    constructor(menuObj) {
         this.searchQuery = '';
+        this.menuObj = menuObj;
+        this.state = MenuState.Closed;
+        this.mount();
     }
+
+    handleWindowOnClick = event => {
+        if (this.state === MenuState.Closed) return;
+        if (this.buttonRef.contains(event.target)) return;
+        if (this.itemsRef && !this.itemsRef.contains(event.target)) {
+            this.closeMenu();
+        }
+    }
+
+    closeMenu = () => this.menuObj.invokeMethodAsync("CloseMenu");
+    openMenu = () => this.menuObj.invokeMethodAsync("OpenMenu");
 
     setButtonReference = (button) => {
-        this.button = button;
+        this.buttonRef = button;
     }
 
-    setItemsReference = (items, itemsObj, keydownMethod) => {
-        this.items = items;
+    setItemsReference = (itemsRef, itemsObj, keydownMethod) => {
+        this.itemsRef = itemsRef;
         this.keydownCallback = keydownMethod;
         this.itemsObj = itemsObj;
-        items.addEventListener('keydown', this.handleKeyDown);
+        itemsRef.addEventListener('keydown', this.handleKeyDown);
     }
 
-    clearSearch = () => { this.searchQuery = ''; }
+    clearSearch = () => { this.searchQuery = ''; }    
 
     handleKeyDown = event => {
         switch (event.key) {
@@ -53,5 +69,17 @@ class Menu {
             altKey: event.altKey,
             metaKey: event.metaKey,
         }).then(data => this.searchQuery = data);
+    }
+
+    mount = () => {
+        window.addEventListener('click', this.handleWindowOnClick);
+    }
+
+    unMount = () => {
+        window.removeEventListener('click', this.handleWindowOnClick);
+    }
+
+    updateState = (state) => {
+        this.state = state;
     }
 }

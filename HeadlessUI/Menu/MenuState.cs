@@ -4,9 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace HeadlessUI
+namespace HeadlessUI.Menu
 {
-    class WindowManager
+    public enum MenuState
     {
+        Closed,
+        Open
     }
 }

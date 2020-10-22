@@ -4,20 +4,18 @@ using Microsoft.AspNetCore.Components.Web;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace HeadlessUI
 {
-    public class HtmlElement : ComponentBase
+    public class HtmlElement : ComponentBase, IAsyncDisposable
     {
-        [Parameter]
-        public string TagName { get; set; } = "div";
-        [Parameter]
-        public bool IsVisible { get; set; } = true;
+        public static string GenerateId() => Guid.NewGuid().ToString("N");
 
-        [Parameter(CaptureUnmatchedValues = true)]
-        public IReadOnlyDictionary<string, object> Attributes { get; set; }
-        [Parameter]
-        public RenderFragment ChildContent { get; set; }
+        [Parameter] public EventCallback OnDispose { get; set; }
+        [Parameter] public string TagName { get; set; } = "div";
+        [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object> Attributes { get; set; }
+        [Parameter] public RenderFragment ChildContent { get; set; }
 
         public ElementReference ElementReference { get; set; }
 
@@ -27,7 +25,10 @@ namespace HeadlessUI
         }
 
         [Parameter]
-        public string Id { get; set; } = Guid.NewGuid().ToString("N");
+        public string Id { get; set; } = GenerateId();
+
+        [Parameter]
+        public string CssClass { get; set; }
 
         [Parameter]
         public string[] PreventDefaultOn { get; set; }
@@ -36,8 +37,6 @@ namespace HeadlessUI
 
         protected override void BuildRenderTree(RenderTreeBuilder builder)
         {
-            if (!IsVisible) return;
-
             if (string.IsNullOrEmpty(TagName))
             {
                 builder.AddContent(0, ChildContent);
@@ -45,17 +44,26 @@ namespace HeadlessUI
             }
 
             builder.OpenElement(0, TagName);
-            builder.AddMultipleAttributes(1, Attributes);
-            builder.AddAttribute(2, "id", Id);
+            builder.AddAttribute(1, "id", Id);
+            builder.AddMultipleAttributes(3, Attributes);
             if (PreventDefaultOn != null)
                 foreach (var eventName in PreventDefaultOn.Where(s => !string.IsNullOrEmpty(s)))
-                    builder.AddEventPreventDefaultAttribute(3, eventName, true);
+                    builder.AddEventPreventDefaultAttribute(4, eventName, true);
             if (StopPropagationOn != null)
                 foreach (var eventName in StopPropagationOn.Where(s => !string.IsNullOrEmpty(s)))
-                    builder.AddEventStopPropagationAttribute(4, eventName, true);
-            builder.AddElementReferenceCapture(5, r => OnSetElementReference(r));
-            builder.AddContent(4, ChildContent);
+                    builder.AddEventStopPropagationAttribute(5, eventName, true);
+            builder.AddElementReferenceCapture(6, r => OnSetElementReference(r));
+            builder.AddContent(6, ChildContent);
             builder.CloseElement();
+        }
+
+        public ValueTask FocusAsync() => ElementReference.FocusAsync();
+
+        public static implicit operator ElementReference(HtmlElement element) => element.ElementReference;
+
+        public async ValueTask DisposeAsync()
+        {
+            await OnDispose.InvokeAsync();
         }
     }
 }

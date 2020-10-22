@@ -1,0 +1,15 @@
+﻿@using HeadlessUI.Menu
+
+<HtmlElement TagName="@TagName"
+             @ref="rootElement"
+             @onpointerup="HandlePointerUp"
+             PreventDefaultOn="@(new string[] { "onpointerup" })"
+             @attributes="AdditionalAttributes"
+             @onkeydown="HandleKeyDown"
+             @onfocus="HandleFocus"
+             Id="@Id"
+             aria-controls="@Menu.MenuItemsControl.Id"
+             aria-haspopup="true"
+             aria-expanded="@(Menu.MenuState == MenuState.Open)">
+    @ChildContent
+</HtmlElement>

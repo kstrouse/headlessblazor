@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace HeadlessUI
 {
-    public static class KeyboardKeys
+    public static class KeyboardKey
     {
         public const string Space = " ";
         public const string Enter = "Enter";
