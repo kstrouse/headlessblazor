@@ -32,8 +32,8 @@ class Menu {
 
     setItemsReference = (itemsRef, itemsObj, keydownMethod) => {
         this.itemsRef = itemsRef;
-        this.keydownCallback = keydownMethod;
         this.itemsObj = itemsObj;
+        this.keydownCallback = keydownMethod;
         itemsRef.addEventListener('keydown', this.handleKeyDown);
     }
 
