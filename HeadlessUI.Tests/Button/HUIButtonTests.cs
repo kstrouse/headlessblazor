@@ -17,7 +17,7 @@ namespace HeadlessUI.Tests.Button
 
         private IRenderedComponent<HUIButton> SetupButtonComponent()
         {
-            var jsModule = JSInterop.SetupModule("import", new string[] { "./_content/HeadlessUI/common.js" });
+            var jsModule = JSInterop.SetupModule("./_content/HeadlessUI/common.js" );
             jsModule.SetupVoid().SetVoidResult();
             return RenderComponent<HUIButton>();
         }
