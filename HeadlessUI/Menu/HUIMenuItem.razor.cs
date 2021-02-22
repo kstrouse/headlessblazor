@@ -33,7 +33,7 @@ namespace HeadlessUI.Menu
         protected override void OnInitialized() => Menu.RegisterItem(this);
         public void Dispose() => Menu.UnregisterItem(this);
 
-        public async Task HandleClick(MouseEventArgs e)
+        protected async Task HandleClick(MouseEventArgs e)
         {
             if (!IsEnabled) return;
             await Menu.CloseMenu();
@@ -41,20 +41,20 @@ namespace HeadlessUI.Menu
             await OnClick.InvokeAsync((this, e));
         }
 
-        public void HandleFocus(EventArgs e)
+        protected void HandleFocus(EventArgs e)
         {
             if (IsEnabled)
                 Menu.GoToItem(this);
 
             Menu.GoToItem(MenuFocus.Nothing);
         }
-        public void HandlePointerMove(PointerEventArgs e)
+        protected void HandlePointerMove(PointerEventArgs e)
         {
             if (!IsEnabled) return;
             if (Menu.IsActiveItem(this)) return;
             Menu.GoToItem(this);
         }
-        public void HandlePointerLeave(MouseEventArgs e)
+        protected void HandlePointerLeave(MouseEventArgs e)
         {
             if (!IsEnabled) return;
             if (!Menu.IsActiveItem(this)) return;

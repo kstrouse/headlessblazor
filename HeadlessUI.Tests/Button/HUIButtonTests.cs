@@ -1,4 +1,5 @@
 ﻿using Bunit;
+using Bunit.JSInterop;
 using HeadlessUI.Button;
 using Microsoft.AspNetCore.Components.Web;
 using Xunit;
@@ -7,28 +8,36 @@ namespace HeadlessUI.Tests.Button
 {
     public class HUIButtonTests : TestContext
     {
+        static IRenderedComponent<HUIButton> component;
+
+        public HUIButtonTests()
+        {
+            component = SetupButtonComponent();
+        }
+
+        private IRenderedComponent<HUIButton> SetupButtonComponent()
+        {
+            var jsModule = JSInterop.SetupModule("./_content/HeadlessUI/common.js" );
+            jsModule.SetupVoid().SetVoidResult();
+            return RenderComponent<HUIButton>();
+        }
 
         [Fact]
         public void NewButton_DefaultsToButtonTag()
         {
-            var component = RenderComponent<HUIButton>();
-
-            var button = component.Find("button");
-            Assert.NotNull(button);
+            var button2 = component.Find("button");
+            Assert.NotNull(button2);
         }
 
         [Fact]
         public void Button_HasRoleOfButton()
         {
-            var component = RenderComponent<HUIButton>();
-
             Assert.Contains("role=\"button\"", component.Markup);
         }
 
         [Fact]
         public void ButtonClick_SpaceKey_EnterKey_AllFireOnClick()
         {
-            var component = RenderComponent<HUIButton>();
             var clickCount = 0;
             component.SetParametersAndRender(parameters => parameters.Add(p => p.OnClick, (ComponentEventArgs<HUIButton, MouseEventArgs> args) => { clickCount += 1; }));
 
@@ -44,7 +53,6 @@ namespace HeadlessUI.Tests.Button
         [Fact]
         public void OnClick_WillNotFire_IfButtonDisabled()
         {
-            var component = RenderComponent<HUIButton>();
             component.SetParametersAndRender(parameters => parameters.Add(p => p.IsEnabled, false));
             var clicked = false;
             component.SetParametersAndRender(parameters => parameters.Add(p => p.OnClick, (ComponentEventArgs<HUIButton, MouseEventArgs> args) => { clicked = true; }));
@@ -60,7 +68,6 @@ namespace HeadlessUI.Tests.Button
         [Fact]
         public void Button_Renders_UnmatchedParameter()
         {
-            var component = RenderComponent<HUIButton>();
             var param = "criticalInfo";
             var paramValue = 2;
             component.SetParametersAndRender(parameters => parameters.AddUnmatched(param, paramValue));
@@ -71,7 +78,6 @@ namespace HeadlessUI.Tests.Button
         [Fact]
         public void ButtonHasDisabledAttributes_IfButtonDisabled()
         {
-            var component = RenderComponent<HUIButton>();
             component.SetParametersAndRender(parameters => parameters.Add(p => p.IsEnabled, false));
 
             Assert.Contains("aria-disabled", component.Markup);
@@ -81,7 +87,6 @@ namespace HeadlessUI.Tests.Button
         [Fact]
         public void Button_HasAriaLabel()
         {
-            var component = RenderComponent<HUIButton>();
             var ariaLabel = "test label of button";
             component.SetParametersAndRender(parameters => parameters.Add(p => p.AriaLabel, ariaLabel));
 
