@@ -1,0 +1,14 @@
+﻿@if (IsVisible)
+{
+    <HtmlElement TagName="@TagName"
+                 @ref="buttonElement"
+                 @onclick="HandleClick"
+                 @onkeyup="HandleKeyUp"
+                 @attributes="AdditionalAttributes"
+                 role="button"
+                 aria-label="@AriaLabel"
+                 aria-disabled="@(!IsEnabled)"
+                 disabled="@(!IsEnabled)">
+        @ChildContent
+    </HtmlElement>
+}
