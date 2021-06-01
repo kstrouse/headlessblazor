@@ -1,0 +1,15 @@
+﻿@typeparam TValue
+
+<HtmlElement TagName="@TagName" 
+             PreventDefaultOn="@(new() { "onclick", "onfocus" })"
+             @onclick="HandleClick"
+             @onfocus="HandleFocus"
+             @onpointermove="HandlePointerMove" 
+             @onmouseout="HandleMouseOut"              
+             @attributes="AdditionalAttributes"
+             Id="@Id" 
+             class="@CssClass" 
+             role="option" 
+             aria-selected="@IsSelected">
+    @ChildContent
+</HtmlElement>

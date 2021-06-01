@@ -1,7 +1,6 @@
-﻿
-namespace HeadlessUI.Menu
+﻿namespace HeadlessUI.Listbox
 {
-    public enum MenuFocus
+    public enum ListboxFocus
     {
         First,
         Previous,

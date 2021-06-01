@@ -1,0 +1,8 @@
+﻿@using HeadlessUI.Utilities
+@typeparam TValue
+
+<ClickOffEventHandler OnClickOff="HandleClickOff" @ref="clickOffEventHandler" />
+
+<CascadingValue Value="this">
+	@ChildContent(this)
+</CascadingValue>

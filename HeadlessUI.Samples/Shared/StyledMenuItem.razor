@@ -1,0 +1,36 @@
+﻿
+<HeadlessMenuItem IsEnabled="IsEnabled" @attributes="AdditionalAttributes" @ref="item" TagName="TagName" SearchValue="@SearchValue" OnClick="() => OnClick.InvokeAsync()" CssClass="@(cssClasses + " flex justify-between w-full px-4 py-2 text-sm leading-5 text-left")">
+	@ChildContent(item)
+</HeadlessMenuItem>
+
+@code
+{
+	[Parameter]
+	public RenderFragment<HeadlessMenuItem> ChildContent { get; set; }
+	[Parameter]
+	public bool IsEnabled { get; set; } = true;
+	[Parameter]
+	public EventCallback OnClick { get; set; }
+	[Parameter]
+	public string TagName { get; set; }
+	[Parameter]
+	public string SearchValue { get; set; }
+
+	[Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object> AdditionalAttributes { get; set; }
+
+	private HeadlessMenuItem item;
+
+	private string cssClasses
+	{
+		get
+		{
+			if (!IsEnabled)
+				return "text-gray-300";
+
+			if (item?.IsActive == true)
+				return "bg-gray-100 text-gray-900";
+
+			return "text-gray-700";
+		}
+	}
+}

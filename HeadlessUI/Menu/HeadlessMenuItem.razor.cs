@@ -1,63 +1,67 @@
-﻿using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Forms;
-using Microsoft.AspNetCore.Components.Rendering;
+﻿using HeadlessUI.Utilities;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Threading.Tasks;
 
 namespace HeadlessUI.Menu
 {
-    public partial class HUIMenuItem : IDisposable
+    public partial class HeadlessMenuItem : IDisposable
     {
+        [CascadingParameter] public HeadlessMenu Menu { get; set; }
+
+        [Parameter] public RenderFragment<HeadlessMenuItem> ChildContent { get; set; }
+
+        [Parameter] public string CssClass { get; set; }
         [Parameter] public bool IsEnabled { get; set; } = true;
         [Parameter] public bool IsVisible { get; set; } = true;
 
-        [Parameter] public bool OnClickPreventDefault { get; set; }
-        [Parameter] public EventCallback<ComponentEventArgs<HUIMenuItem, MouseEventArgs>> OnClick { get; set; }
+        [Parameter] public string SearchValue { get; set; } = "";
 
         [Parameter] public string TagName { get; set; } = "a";
-        [Parameter] public string SearchValue { get; set; } = "";
         [Parameter] public string Id { get; set; } = HtmlElement.GenerateId();
 
-        [Parameter] public Func<HUIMenuItem, string> CssClassBuilder { get; set; }
+        [Parameter] public EventCallback OnClick { get; set; }
 
-        [Parameter] public RenderFragment<HUIMenuItem> ChildContent { get; set; }
         [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object> AdditionalAttributes { get; set; }
 
-        [CascadingParameter] public HUIMenu Menu { get; set; }
 
         public bool IsActive => Menu.IsActiveItem(this);
 
         protected override void OnInitialized() => Menu.RegisterItem(this);
         public void Dispose() => Menu.UnregisterItem(this);
 
-        public async Task HandleClick(MouseEventArgs e)
+        private async Task HandleClick(MouseEventArgs e)
         {
             if (!IsEnabled) return;
-            await Menu.CloseMenu();
-            await Menu.FocusButtonAsync();
-            await OnClick.InvokeAsync((this, e));
+            await Menu.Close();
+            await OnClick.InvokeAsync();
         }
 
-        public void HandleFocus(EventArgs e)
+        private void HandleFocus(EventArgs e)
         {
             if (IsEnabled)
+            {
                 Menu.GoToItem(this);
+                return;
+            }
 
             Menu.GoToItem(MenuFocus.Nothing);
         }
-        public void HandlePointerMove(PointerEventArgs e)
+        private async Task HandlePointerMove(PointerEventArgs e)
         {
             if (!IsEnabled) return;
+            if (Menu.State == MenuState.Closed) return;
+
+            await Menu.MenuItemsFocusAsync();
             if (Menu.IsActiveItem(this)) return;
             Menu.GoToItem(this);
         }
-        public void HandlePointerLeave(MouseEventArgs e)
+        private void HandleMouseOut(MouseEventArgs e)
         {
             if (!IsEnabled) return;
-            if (!Menu.IsActiveItem(this)) return;
+            if (!IsActive) return;
             Menu.GoToItem(MenuFocus.Nothing);
         }
     }

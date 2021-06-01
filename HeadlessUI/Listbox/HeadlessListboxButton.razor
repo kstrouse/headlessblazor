@@ -1,0 +1,22 @@
+﻿@using HeadlessUI.Utilities
+@typeparam TValue
+
+<KeyDownEventHandler @ref="keyDownEventHandler" OnKeyDown="HandleKeyDown" PreventDefaultForKeys="new() {
+            KeyboardKey.Space,
+            KeyboardKey.Enter,
+            KeyboardKey.ArrowDown,
+            KeyboardKey.ArrowUp
+        }" />
+
+<HtmlElement TagName="@TagName" 
+             @ref="rootElement" 
+             @attributes="AdditionalAttributes"
+             @onclick="HandleClick" 
+             @onfocus="HandleFocus" 
+             PreventDefaultOn="@(new() { "onclick", "onfoucus" })"
+             Id="@Id"
+             aria-haspopup="listbox" 
+             aria-expanded="@((Listbox.State == ListboxState.Open).ToString())" 
+             aria-labelledby="@Listbox.LabelId">
+    @ChildContent
+</HtmlElement>
