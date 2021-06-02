@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
+using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
 using System.Timers;
 
@@ -33,6 +34,8 @@ namespace HeadlessUI.Utilities
         {
             if (State == TransitionState.Visible || State == TransitionState.Hidden || transitionStarted) return;
 
+            //Not sure why this is required but I am guessing it allows blazor to finish the actualy dom manipulation of the render before we start a new state
+            await Task.Yield();
             transitionStarted = true;
             CurrentCssClass = State == TransitionState.Entering ? $"{Enter} {EnterTo}" : $"{Leave} {LeaveTo}";
 
@@ -53,7 +56,6 @@ namespace HeadlessUI.Utilities
         private async void OnEndTransition(object source, ElapsedEventArgs e)
         {
             State = State == TransitionState.Entering ? TransitionState.Visible : TransitionState.Hidden;
-
             ClearCurrentTransition();
 
             await AfterTransition.InvokeAsync();

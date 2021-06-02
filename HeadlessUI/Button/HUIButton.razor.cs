@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Components;
+﻿using HeadlessUI.Utilities;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 using System;
@@ -15,7 +16,7 @@ namespace HeadlessUI.Button
         [Parameter] public bool IsEnabled { get; set; } = true;
         [Parameter] public bool IsVisible { get; set; } = true;
 
-        [Parameter] public EventCallback<ComponentEventArgs<HUIButton, MouseEventArgs>> OnClick { get; set; }
+        [Parameter] public EventCallback OnClick { get; set; }
 
         [Parameter] public string TagName { get; set; } = "button";
         [Parameter] public string AriaLabel { get; set; }
@@ -33,12 +34,12 @@ namespace HeadlessUI.Button
 
         private async Task EnsureInitialized()
         {
-            if (buttonElement?.ElementReference.Id != previouslyRenderedElementId)
+            if (((ElementReference)buttonElement).Id != previouslyRenderedElementId)
             {
                 try
                 {
                     await PreventDefaultKeyBehaviorOnEnterAndSpace();
-                    previouslyRenderedElementId = buttonElement.ElementReference.Id;
+                    previouslyRenderedElementId = ((ElementReference)buttonElement).Id;
                 }
                 catch (JSException)
                 {
@@ -50,7 +51,7 @@ namespace HeadlessUI.Button
         private async Task PreventDefaultKeyBehaviorOnEnterAndSpace()
         {
             jsModule = await jsRuntime.InvokeAsync<IJSObjectReference>("import", "./_content/HeadlessUI/common.js");
-            await jsModule.InvokeVoidAsync("preventDefaultKeyBehaviorOnKeys", buttonElement.ElementReference, new List<string> { KeyboardKey.Enter, KeyboardKey.Space });
+            await jsModule.InvokeVoidAsync("preventDefaultKeyBehaviorOnKeys", ((ElementReference)buttonElement), new List<string> { KeyboardKey.Enter, KeyboardKey.Space });
         }
 
         protected async Task HandleClick(MouseEventArgs e)
@@ -78,7 +79,7 @@ namespace HeadlessUI.Button
 
         public async ValueTask DisposeAsync()
         {
-            await jsModule.InvokeVoidAsync("preventDefaultKeyBehaviorOnKeys", buttonElement.ElementReference, new List<string> { }, false);
+            await jsModule.InvokeVoidAsync("preventDefaultKeyBehaviorOnKeys", ((ElementReference)buttonElement), new List<string> { }, false);
         }
 
     }
