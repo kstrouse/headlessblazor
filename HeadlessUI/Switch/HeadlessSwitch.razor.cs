@@ -14,10 +14,11 @@ namespace HeadlessUI.Switch
         [Parameter] public string TagName { get; set; } = "button";
 
         [Parameter] public bool Checked { get; set; }
+        [Parameter] public bool IsEnabled { get; set; } = true;
         [Parameter] public EventCallback<bool> CheckedChanged { get; set; }
 
 
-        [Parameter] public RenderFragment<bool> ChildContent { get; set; }
+        [Parameter] public RenderFragment ChildContent { get; set; }
         [Parameter] public string CssClass { get; set; }
 
         [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object> AdditionalAttributes { get; set; }
@@ -42,6 +43,12 @@ namespace HeadlessUI.Switch
 
         public void Toggle() => CurrentChecked = !CurrentChecked;
 
-        public void HandleClick() => Toggle();
+        public void HandleClick()
+        {
+            if (IsEnabled)
+                Toggle();
+        }
+
+
     }
 }

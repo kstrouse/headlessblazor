@@ -13,10 +13,12 @@ namespace HeadlessUI.Switch
         [Parameter] public RenderFragment ChildContent { get; set; }
         [CascadingParameter] public HeadlessSwitchGroup Group { get; set; }
 
+        [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object> AdditionalAttributes { get; set; }
+
         public void HandleClick()
         {
             if (!Passive)
-                Group.ToggleSwitch();
+                Group?.ToggleSwitch();
         }
     }
 }
