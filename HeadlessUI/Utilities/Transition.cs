@@ -28,15 +28,20 @@ namespace HeadlessUI.Utilities
 
         public TransitionState State { get; private set; }
         private bool transitionStarted;
-        private System.Timers.Timer transitionTimer;
+        private Timer transitionTimer;
+        private bool stateChangeRequested;
 
         protected override async Task OnAfterRenderAsync(bool firstRender)
         {
             if (State == TransitionState.Visible || State == TransitionState.Hidden || transitionStarted) return;
 
-            //Not sure why this is required but I am guessing it allows blazor to finish the actualy dom manipulation of the render before we start a new state
-            await Task.Yield();
             transitionStarted = true;
+
+            //Not sure why this is required when showing but I am guessing it allows blazor to finish the actual
+            //dom manipulation of adding the item to the page before we start a new state
+            if (State == TransitionState.Entering)
+                await Task.Yield();
+
             CurrentCssClass = State == TransitionState.Entering ? $"{Enter} {EnterTo}" : $"{Leave} {LeaveTo}";
 
             await BeforeTransition.InvokeAsync();
@@ -47,7 +52,7 @@ namespace HeadlessUI.Utilities
 
         private void StartTransitionTimer()
         {
-            transitionTimer = new System.Timers.Timer(State == TransitionState.Entering ? EnterDuration : LeaveDuration);
+            transitionTimer = new Timer(State == TransitionState.Entering ? EnterDuration : LeaveDuration);
             transitionTimer.Elapsed += OnEndTransition;
             transitionTimer.AutoReset = false;
             transitionTimer.Enabled = true;
@@ -73,10 +78,19 @@ namespace HeadlessUI.Utilities
             transitionTimer = null;
         }
 
+        public override Task SetParametersAsync(ParameterView parameters)
+        {
+            var newShowValue = parameters.GetValueOrDefault<bool>(nameof(Show));
+            stateChangeRequested = newShowValue != Show;
+            return base.SetParametersAsync(parameters);
+        }
+
         protected override void OnParametersSet()
         {
-            if (!StateChangeRequested()) return;
-
+            if (!stateChangeRequested) return;
+            
+            stateChangeRequested = false;
+            
             if (Show)
                 InitializeEntering();
             else
@@ -108,13 +122,6 @@ namespace HeadlessUI.Utilities
 
             State = TransitionState.Leaving;
             CurrentCssClass = $"{Leave} {LeaveFrom}";
-        }
-        private bool StateChangeRequested()
-        {
-            if (Show)
-                return State != TransitionState.Visible && State != TransitionState.Entering;
-            else
-                return State != TransitionState.Hidden && State != TransitionState.Leaving;
         }
 
         protected override void BuildRenderTree(RenderTreeBuilder builder)
