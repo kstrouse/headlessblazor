@@ -1,5 +1,5 @@
 ﻿
-<HeadlessMenuItem IsEnabled="IsEnabled" @attributes="AdditionalAttributes" @ref="item" TagName="TagName" SearchValue="@SearchValue" OnClick="() => OnClick.InvokeAsync()" CssClass="@(cssClasses + " flex justify-between w-full px-4 py-2 text-sm leading-5 text-left")">
+<HeadlessMenuItem IsEnabled="IsEnabled" @attributes="AdditionalAttributes" @ref="item" TagName="TagName" SearchValue="@SearchValue" OnClick="() => OnClick.InvokeAsync()" class="@(cssClasses + " flex justify-between w-full px-4 py-2 text-sm leading-5 text-left")">
 	@ChildContent(item)
 </HeadlessMenuItem>
 

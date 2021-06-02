@@ -12,10 +12,11 @@ namespace HeadlessUI.Switch
         [Parameter]
         public RenderFragment ChildContent { get; set; }
 
-        public HeadlessSwitch Switch { get; private set; }
+        private HeadlessSwitch switchElement;
 
         public void RegisterSwitch(HeadlessSwitch switchElement)
-            => Switch = switchElement;
+            => this.switchElement = switchElement;
 
+        public void ToggleSwitch() => switchElement.Toggle();
     }
 }

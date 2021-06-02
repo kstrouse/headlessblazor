@@ -39,15 +39,15 @@
 <HeadlessSwitchGroup>
     <HeadlessSwitchLabel>Test Label</HeadlessSwitchLabel>
     @{ var checkedCssClass = isChecked ? "bg-indigo-600" : "bg-gray-200"; }
-    <HeadlessSwitch @bind-Checked="isChecked" CssClass="@( $"{checkedCssClass} relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" )">
+    <HeadlessSwitch @bind-Checked="isChecked" class="@( $"{checkedCssClass} relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" )">
         <span class="sr-only">Use setting</span>
-        <span class="@(isChecked ? "translate-x-5" : "translate-x-0") pointer-events-none relative inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 transition ease-in-out duration-200">
-            <span class="@(isChecked ? "opacity-0 ease-out duration-100" : "opacity-100 ease-in duration-200") absolute inset-0 h-full w-full flex items-center justify-center transition-opacity" aria-hidden="true">
+        <span class="@(context ? "translate-x-5" : "translate-x-0") pointer-events-none relative inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 transition ease-in-out duration-200">
+            <span class="@(context ? "opacity-0 ease-out duration-100" : "opacity-100 ease-in duration-200") absolute inset-0 h-full w-full flex items-center justify-center transition-opacity" aria-hidden="true">
                 <svg class="bg-white h-3 w-3 text-gray-400" fill="none" viewBox="0 0 12 12">
                     <path d="M4 8l2-2m0 0l2-2M6 6L4 4m2 2l2 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                 </svg>
             </span>
-            <span class="@(isChecked ? "opacity-100 ease-in duration-200" : "opacity-0 ease-out duration-100") absolute inset-0 h-full w-full flex items-center justify-center transition-opacity" aria-hidden="true">
+            <span class="@(context ? "opacity-100 ease-in duration-200" : "opacity-0 ease-out duration-100") absolute inset-0 h-full w-full flex items-center justify-center transition-opacity" aria-hidden="true">
                 <svg class="bg-white h-3 w-3 text-indigo-600" fill="currentColor" viewBox="0 0 12 12">
                     <path d="M3.707 5.293a1 1 0 00-1.414 1.414l1.414-1.414zM5 8l-.707.707a1 1 0 001.414 0L5 8zm4.707-3.293a1 1 0 00-1.414-1.414l1.414 1.414zm-7.414 2l2 2 1.414-1.414-2-2-1.414 1.414zm3.414 2l4-4-1.414-1.414-4 4 1.414 1.414z" />
                 </svg>
@@ -59,7 +59,7 @@
 <br />
 <div class="w-72 inline-block top-16">
     <HeadlessListbox TValue="Person" @bind-Value="@selectedPerson" Context="listbox">
-        <HeadlessListboxLabel TValue="Person" CssClass="block text-sm font-medium text-gray-700">
+        <HeadlessListboxLabel TValue="Person" class="block text-sm font-medium text-gray-700">
             Assigned to
         </HeadlessListboxLabel>
         <div class="mt-1 relative">
@@ -74,19 +74,19 @@
                 </span>
             </HeadlessListboxButton>
             <Transition Show="@(listbox.State == ListboxState.Open)"
-                        Leave="transition ease-in duration-1000"
-                        LeaveDuration="1000"
+                        Leave="transition ease-in duration-200"
+                        LeaveDuration="200"
                         LeaveFrom="opacity-100"
                         LeaveTo="opacity-0"
                         Context="transitionCss">
-            <HeadlessListboxOptions Static="true" TValue="Person" CssClass="@($"{transitionCss} focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 absolute mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm")">
-                <StyledListboxOption TValue="Person">Unassigned</StyledListboxOption>
-                @foreach (var person in people)
-                {
-                    <StyledListboxOption Value="person" TValue="Person" IsEnabled="@person.Enabled" SearchValue="@person.Name">@person.Name</StyledListboxOption>
-                }
-            </HeadlessListboxOptions>
-            </Transition>5
+                <HeadlessListboxOptions Static="false" TValue="Person" class="@($"transitionCss focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 absolute mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm")">
+                    <StyledListboxOption TValue="Person">Unassigned</StyledListboxOption>
+                    @foreach (var person in people)
+                    {
+                        <StyledListboxOption Value="person" TValue="Person" IsEnabled="@person.Enabled" SearchValue="@person.Name">@person.Name</StyledListboxOption>
+                    }
+                </HeadlessListboxOptions>
+            </Transition>
         </div>
     </HeadlessListbox>
 
@@ -108,7 +108,7 @@
                 </svg>
             </HeadlessMenuButton>
         </span>
-        <HeadlessMenuItems CssClass="focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 z-10 absolute w-56 mt-2 origin-top-right bg-white border border-gray-200 divide-y divide-gray-100 rounded-md shadow-lg outline-none">
+        <HeadlessMenuItems class="focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 z-10 absolute w-56 mt-2 origin-top-right bg-white border border-gray-200 divide-y divide-gray-100 rounded-md shadow-lg outline-none">
             <div class="px-4 py-3">
                 <p class="text-sm leading-5">Signed in as</p>
                 <p class="text-sm font-medium leading-5 text-gray-900 truncate">

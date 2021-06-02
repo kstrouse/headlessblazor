@@ -12,7 +12,6 @@ namespace HeadlessUI.Listbox
 
         [Parameter] public RenderFragment ChildContent { get; set; }
 
-        [Parameter] public string CssClass { get; set; }
         [Parameter] public bool IsEnabled { get; set; } = true;
         [Parameter] public bool IsVisible { get; set; } = true;
         

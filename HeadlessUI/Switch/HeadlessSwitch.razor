@@ -1,3 +1,3 @@
-﻿<HtmlElement TagName="button" role="switch" aria-checked="@Checked" @onclick="HandleClick" class="@CssClass" Id="@Id">
-    @ChildContent
+﻿<HtmlElement TagName="button" role="switch" aria-checked="@CurrentChecked" @onclick="HandleClick" @attributes="AdditionalAttributes" Id="@Id">
+    @ChildContent(CurrentChecked)
 </HtmlElement>

@@ -51,9 +51,17 @@ namespace HeadlessUI.Listbox
             {
                 shouldFocus = false;
                 if (State == ListboxState.Open)
+                {
                     await OptionsFocusAsync();
+                }
                 else
+                {
+                    //I wouldn't think the Task.Yield would be necessary but Blazor occationally throws a javascript error that I am unable to isolate if it isn't in there
+                    //If we can identify the precise cause of the error then this could be removed.
+
+                    await Task.Yield();
                     await ButtonFocusAsync();
+                }
             }
             await clickOffEventHandler.RegisterElement(buttonElement);
             await clickOffEventHandler.RegisterElement(optionsElement);

@@ -17,7 +17,6 @@ namespace HeadlessUI.Listbox
         [Parameter] public bool Static { get; set; }
         [Parameter] public string TagName { get; set; } = "ul";
         [Parameter] public string Id { get; set; } = HtmlElement.GenerateId();
-        [Parameter] public string CssClass { get; set; }
 
         [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object> AdditionalAttributes { get; set; }
 

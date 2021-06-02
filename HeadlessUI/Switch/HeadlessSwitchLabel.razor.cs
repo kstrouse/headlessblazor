@@ -13,10 +13,10 @@ namespace HeadlessUI.Switch
         [Parameter] public RenderFragment ChildContent { get; set; }
         [CascadingParameter] public HeadlessSwitchGroup Group { get; set; }
 
-        public async Task HandleClick()
+        public void HandleClick()
         {
             if (!Passive)
-                await Group.Switch.HandleClick();
+                Group.ToggleSwitch();
         }
     }
 }

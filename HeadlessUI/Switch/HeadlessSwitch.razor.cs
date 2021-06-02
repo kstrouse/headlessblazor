@@ -10,29 +10,38 @@ namespace HeadlessUI.Switch
 {
     public partial class HeadlessSwitch
     {
-        public string Id { get; } = Guid.NewGuid().ToString("N");
+        [Parameter] public string Id { get; set; } = HtmlElement.GenerateId();
+        [Parameter] public string TagName { get; set; } = "button";
 
-        [Parameter]
-        public bool Checked { get; set; }
-        [Parameter]
-        public EventCallback<bool> CheckedChanged { get; set; }
-        [Parameter]
-        public RenderFragment ChildContent { get; set; }
-        [Parameter]
-        public string CssClass { get; set; }
+        [Parameter] public bool Checked { get; set; }
+        [Parameter] public EventCallback<bool> CheckedChanged { get; set; }
 
-        [CascadingParameter]
-        public HeadlessSwitchGroup Group { get; set; }
 
-        protected override void OnInitialized()
+        [Parameter] public RenderFragment<bool> ChildContent { get; set; }
+        [Parameter] public string CssClass { get; set; }
+
+        [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object> AdditionalAttributes { get; set; }
+
+        [CascadingParameter] public HeadlessSwitchGroup Group { get; set; }
+
+        protected bool CurrentChecked
         {
-            Group?.RegisterSwitch(this);
+            get => Checked;
+            set
+            {
+                var hasChanged = value != Checked;
+                if (hasChanged)
+                {
+                    Checked = value;
+                    _ = CheckedChanged.InvokeAsync(Checked);
+                }
+            }
         }
 
-        public async Task HandleClick()
-        {
-            Checked = !Checked;
-            await CheckedChanged.InvokeAsync(Checked);
-        }
+        protected override void OnInitialized() => Group?.RegisterSwitch(this);
+
+        public void Toggle() => CurrentChecked = !CurrentChecked;
+
+        public void HandleClick() => Toggle();
     }
 }

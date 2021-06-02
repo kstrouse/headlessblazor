@@ -13,7 +13,6 @@ namespace HeadlessUI.Menu
 
         [Parameter] public RenderFragment<HeadlessMenuItem> ChildContent { get; set; }
 
-        [Parameter] public string CssClass { get; set; }
         [Parameter] public bool IsEnabled { get; set; } = true;
         [Parameter] public bool IsVisible { get; set; } = true;
 
