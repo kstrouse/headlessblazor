@@ -39,7 +39,7 @@ namespace HeadlessUI.Tests.Button
         public void ButtonClick_SpaceKey_EnterKey_AllFireOnClick()
         {
             var clickCount = 0;
-            component.SetParametersAndRender(parameters => parameters.Add(p => p.OnClick, (ComponentEventArgs<HUIButton, MouseEventArgs> args) => { clickCount += 1; }));
+            component.SetParametersAndRender(parameters => parameters.Add(p => p.OnClick, () => { clickCount += 1; }));
 
             var button = component.Find("button");
             button.Click();
@@ -55,7 +55,7 @@ namespace HeadlessUI.Tests.Button
         {
             component.SetParametersAndRender(parameters => parameters.Add(p => p.IsEnabled, false));
             var clicked = false;
-            component.SetParametersAndRender(parameters => parameters.Add(p => p.OnClick, (ComponentEventArgs<HUIButton, MouseEventArgs> args) => { clicked = true; }));
+            component.SetParametersAndRender(parameters => parameters.Add(p => p.OnClick, () => { clicked = true; }));
 
             var button = component.Find("button");
             button.Click();

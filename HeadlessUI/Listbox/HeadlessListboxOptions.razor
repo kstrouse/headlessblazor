@@ -4,7 +4,7 @@
 
 @if (Static || this.Listbox.State == ListboxState.Open)
 {
-    <KeyDownEventHandler @ref="keyDownEventHandler" OnKeyDown="HandleKeyDown" PreventDefaultForKeys="new() {
+	<KeyDownEventHandler @ref="keyDownEventHandler" OnKeyDown="HandleKeyDown" PreventDefaultForKeys="new() {
             KeyboardKey.Space,
             KeyboardKey.Enter,
             KeyboardKey.ArrowDown,
@@ -13,14 +13,15 @@
             KeyboardKey.End,
             KeyboardKey.Escape
         }" />
-
-    <HtmlElement TagName="@TagName" 
-                @ref="rootElement" Id="Id" 
-                @attributes="AdditionalAttributes" 
-                tabindex="-1" 
-                role="listbox" 
-                aria-labelledby="@Listbox.LabelId" 
-                aria-activedescendant="@Listbox.ActiveOptionId">
-        @ChildContent
-    </HtmlElement>
+	<CascadingValue Value="this">
+		<HtmlElement TagName="@TagName"
+					@ref="rootElement" Id="Id"
+					@attributes="AdditionalAttributes"
+					tabindex="-1"
+					role="listbox"
+					aria-labelledby="@Listbox.LabelId"
+					aria-activedescendant="@Listbox.ActiveOptionId">
+			@ChildContent
+		</HtmlElement>
+	</CascadingValue>
 }

@@ -11,14 +11,15 @@
             KeyboardKey.End,
             KeyboardKey.Escape
         }" />
-
-    <HtmlElement TagName="@TagName" @ref="rootElement"
-                 @attributes="AdditionalAttributes"
-                 Id="@Id"
-                 role="menu"
-                 tabindex="-1"
-                 aria-activedescendant="@Menu.ActiveItemId"
-                 aria-labelledby="@Menu.ButtonElementId">
-        @ChildContent
-    </HtmlElement>
+    <CascadingValue Value="this">
+        <HtmlElement TagName="@TagName" @ref="rootElement"
+                     @attributes="AdditionalAttributes"
+                     Id="@Id"
+                     role="menu"
+                     tabindex="-1"
+                     aria-activedescendant="@Menu.ActiveItemId"
+                     aria-labelledby="@Menu.ButtonElementId">
+            @ChildContent
+        </HtmlElement>
+    </CascadingValue>
 }

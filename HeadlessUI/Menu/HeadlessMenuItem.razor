@@ -7,5 +7,5 @@
                 @attributes="AdditionalAttributes"
                 Id="@Id"
                 role="menuitem">
-    @ChildContent(this)
+    @ChildContent?.Invoke(this)
 </HtmlElement>

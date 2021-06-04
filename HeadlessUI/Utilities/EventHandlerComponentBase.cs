@@ -10,18 +10,18 @@ namespace HeadlessUI.Utilities
     public abstract class EventHandlerComponentBase<TComponent> : ComponentBase, IAsyncDisposable
         where TComponent : EventHandlerComponentBase<TComponent>
     {
-        protected IJSObjectReference jsHandlerReference;
-        private string jsFileName;
-        private string handlerMethodName;
-        private readonly List<ElementReference> registeredElements = new List<ElementReference>();
+        protected IJSObjectReference? jsHandlerReference;
+        private readonly string jsFileName;
+        private readonly string handlerMethodName;
+        private readonly List<ElementReference> registeredElements = new();
+        
+        [Inject] public IJSRuntime JSRuntime { get; set; } = default!;
 
         protected EventHandlerComponentBase(string jsFileName, string handlerMethodName)
         {
             this.jsFileName = jsFileName;
             this.handlerMethodName = handlerMethodName;
         }
-
-        [Inject] public IJSRuntime JSRuntime { get; set; }
 
         protected override async Task OnInitializedAsync()
         {
@@ -30,11 +30,11 @@ namespace HeadlessUI.Utilities
                 var jsModule = await JSRuntime.InvokeAsync<IJSObjectReference>("import", $"./_content/HeadlessUI/{jsFileName}.js");
                 var objRef = DotNetObjectReference.Create((TComponent)this);
 
-                var properties = GetAdditionalInitializationProperties().ToList();
-                properties.Insert(0, objRef);
-                properties.Insert(1, handlerMethodName);
+                var parameters = GetAdditionalInitializationParameters().ToList();
+                parameters.Insert(0, objRef);
+                parameters.Insert(1, handlerMethodName);
 
-                jsHandlerReference = await jsModule.InvokeAsync<IJSObjectReference>("makeHandler", properties.ToArray());
+                jsHandlerReference = await jsModule.InvokeAsync<IJSObjectReference>("makeHandler", parameters.ToArray());
                 foreach (var element in registeredElements)
                 {
                     await jsHandlerReference.InvokeVoidAsync("registerElement", element);
@@ -46,12 +46,12 @@ namespace HeadlessUI.Utilities
             }
         }
 
-        protected virtual IEnumerable<object> GetAdditionalInitializationProperties() => Enumerable.Empty<object>();
+        protected virtual IEnumerable<object> GetAdditionalInitializationParameters() => Enumerable.Empty<object>();
 
         public ValueTask DisposeAsync()
-            => jsHandlerReference.InvokeVoidAsync("unmount");
+            => jsHandlerReference?.InvokeVoidAsync("unmount") ?? ValueTask.CompletedTask;
 
-        public async ValueTask RegisterElement(ElementReference element)
+        public async Task RegisterElement(ElementReference element)
         {
             if (element.Id == null) return;
             if (registeredElements.Any(e => e.Id == element.Id)) return;
@@ -60,7 +60,7 @@ namespace HeadlessUI.Utilities
             await jsHandlerReference.InvokeVoidAsync("registerElement", element);
         }
 
-        public async ValueTask UnregisterElement(ElementReference element)
+        public async Task UnregisterElement(ElementReference element)
         {
             if (element.Id == null) return;
             registeredElements.Remove(element);

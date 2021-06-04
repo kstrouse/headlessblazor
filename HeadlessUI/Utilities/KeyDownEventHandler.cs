@@ -12,7 +12,7 @@ namespace HeadlessUI.Utilities
     public class KeyDownEventHandler : EventHandlerComponentBase<KeyDownEventHandler>
     {
         [Parameter] public EventCallback<KeyboardEventArgs> OnKeyDown { get; set; }
-        [Parameter] public List<string> PreventDefaultForKeys { get; set; }
+        [Parameter] public List<string> PreventDefaultForKeys { get; set; } = new();
         [JSInvokable] public Task HandleKeyDown(KeyboardEventArgs args)
         {
             return OnKeyDown.InvokeAsync(args);
@@ -20,7 +20,7 @@ namespace HeadlessUI.Utilities
         
         public KeyDownEventHandler() : base("keydownhandler", nameof(HandleKeyDown)) { }
 
-        protected override IEnumerable<object> GetAdditionalInitializationProperties()
+        protected override IEnumerable<object> GetAdditionalInitializationParameters()
         {
             yield return PreventDefaultForKeys.ToArray();
         }

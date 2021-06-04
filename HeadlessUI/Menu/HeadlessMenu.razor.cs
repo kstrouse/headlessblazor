@@ -11,7 +11,7 @@ namespace HeadlessUI.Menu
 {
     public partial class HeadlessMenu : IDisposable
     {
-        [Parameter] public RenderFragment ChildContent { get; set; }
+        [Parameter] public RenderFragment? ChildContent { get; set; }
 
         [Parameter] public EventCallback OnOpen { get; set; }
         [Parameter] public EventCallback OnClose { get; set; }
@@ -19,23 +19,23 @@ namespace HeadlessUI.Menu
         [Parameter] public int DebouceTimeout { get; set; } = 350;
 
         private readonly List<HeadlessMenuItem> menuItems = new();
-        private HeadlessMenuItem activeItem;
-        private ClickOffEventHandler clickOffEventHandler;
+        private HeadlessMenuItem? activeItem;
+        private ClickOffEventHandler? clickOffEventHandler;
         private SearchAssistant searchAssistant;
 
-        private HeadlessMenuButton buttonElement;
-        private HeadlessMenuItems itemsElement;
+        private HeadlessMenuButton? buttonElement;
+        private HeadlessMenuItems? itemsElement;
 
         public MenuState State { get; protected set; } = MenuState.Closed;
         public string SearchQuery => searchAssistant.SearchQuery;
-        public string ActiveItemId => activeItem?.Id;
-        public string ButtonElementId => buttonElement?.Id;
-        public string ItemsElementId => itemsElement?.Id;
+        public string? ActiveItemId => activeItem?.Id;
+        public string? ButtonElementId => buttonElement?.Id;
+        public string? ItemsElementId => itemsElement?.Id;
 
         public HeadlessMenu()
         {
             searchAssistant = new SearchAssistant();
-            searchAssistant.OnChange += HandleSearchChange;
+            searchAssistant.OnChange += HandleSearchChange!;
         }
 
         protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -56,8 +56,11 @@ namespace HeadlessUI.Menu
                     await ButtonFocusAsync();
                 }
             }
-            await clickOffEventHandler.RegisterElement(buttonElement);
-            await clickOffEventHandler.RegisterElement(itemsElement);
+            if (clickOffEventHandler != null)
+            {
+                await clickOffEventHandler.RegisterElement(buttonElement!);
+                await clickOffEventHandler.RegisterElement(itemsElement!);
+            }
         }
 
         public void RegisterItem(HeadlessMenuItem item) => menuItems.Add(item);
@@ -76,7 +79,7 @@ namespace HeadlessUI.Menu
                 GoToItem(MenuFocus.First);
         }
         public bool IsActiveItem(HeadlessMenuItem item) => activeItem == item;
-        public void GoToItem(HeadlessMenuItem item)
+        public void GoToItem(HeadlessMenuItem? item)
         {
             if (item != null && (!item.IsEnabled || !menuItems.Contains(item))) item = null;
             if (activeItem == item) return;
@@ -90,48 +93,30 @@ namespace HeadlessUI.Menu
             switch (focus)
             {
                 case MenuFocus.First:
-                    {
-                        GoToItem(menuItems.FirstOrDefault(mi => mi.IsEnabled));
-                        break;
-                    }
+                    GoToItem(menuItems.FirstOrDefault(mi => mi.IsEnabled));
+                    break;
                 case MenuFocus.Previous:
-                    {
-                        var item = FindItemBefore(activeItem);
-                        if (item == null)
-                            GoToItem(MenuFocus.Last);
-                        else
-                            GoToItem(item);
-                        break;
-                    }
+                    GoToItem(FindItemBeforeActiveItem());
+                    break;
                 case MenuFocus.Next:
-                    {
-                        var item = FindItemAfter(activeItem);
-                        if (item == null)
-                            GoToItem(MenuFocus.First);
-                        else
-                            GoToItem(item);
-                        break;
-                    }
+                    GoToItem(FindItemAfterActiveItem());
+                    break;
                 case MenuFocus.Last:
-                    {
-                        GoToItem(menuItems.LastOrDefault(mi => mi.IsEnabled));
-                        break;
-                    }
+                    GoToItem(menuItems.LastOrDefault(mi => mi.IsEnabled));
+                    break;
                 default:
-                    {
-                        GoToItem(null);
-                        break;
-                    }
+                    GoToItem(null);
+                    break;
             }
         }
-        private HeadlessMenuItem FindItemBefore(HeadlessMenuItem target)
+        private HeadlessMenuItem? FindItemBeforeActiveItem()
         {
             var reversedMenuOptions = menuItems.ToList();
             reversedMenuOptions.Reverse();
             bool foundTarget = false;
             var itemIndex = reversedMenuOptions.FindIndex(0, mi =>
             {
-                if (mi == target)
+                if (mi == activeItem)
                 {
                     foundTarget = true;
                     return false;
@@ -141,14 +126,14 @@ namespace HeadlessUI.Menu
             if (itemIndex != -1)
                 return reversedMenuOptions[itemIndex];
             else
-                return null;
+                return menuItems.LastOrDefault(mi => mi.IsEnabled);
         }
-        private HeadlessMenuItem FindItemAfter(HeadlessMenuItem target)
+        private HeadlessMenuItem? FindItemAfterActiveItem()
         {
             bool foundTarget = false;
             var itemIndex = menuItems.FindIndex(0, mi =>
             {
-                if (mi == target)
+                if (mi == activeItem)
                 {
                     foundTarget = true;
                     return false;
@@ -158,7 +143,7 @@ namespace HeadlessUI.Menu
             if (itemIndex != -1)
                 return menuItems[itemIndex];
             else
-                return null;
+                return menuItems.FirstOrDefault(mi => mi.IsEnabled);
         }
 
         public void RegisterButton(HeadlessMenuButton button)
@@ -191,8 +176,8 @@ namespace HeadlessUI.Menu
             StateHasChanged();
         }
 
-        public ValueTask ButtonFocusAsync() => buttonElement.FocusAsync();
-        public ValueTask MenuItemsFocusAsync() => itemsElement.FocusAsync();
+        public ValueTask ButtonFocusAsync() => buttonElement?.FocusAsync() ?? ValueTask.CompletedTask;
+        public ValueTask MenuItemsFocusAsync() => itemsElement?.FocusAsync() ?? ValueTask.CompletedTask;
 
         public Task HandleClickOff() => Close();
         private void HandleSearchChange(object sender, EventArgs e)

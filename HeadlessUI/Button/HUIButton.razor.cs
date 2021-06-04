@@ -10,8 +10,8 @@ namespace HeadlessUI.Button
 {
     public partial class HUIButton : IAsyncDisposable
     {
-        [Inject] protected IJSRuntime jsRuntime { get; set; }
-        private IJSObjectReference jsModule;
+        [Inject] protected IJSRuntime? jsRuntime { get; set; }
+        private IJSObjectReference? jsModule;
 
         [Parameter] public bool IsEnabled { get; set; } = true;
         [Parameter] public bool IsVisible { get; set; } = true;
@@ -19,13 +19,13 @@ namespace HeadlessUI.Button
         [Parameter] public EventCallback OnClick { get; set; }
 
         [Parameter] public string TagName { get; set; } = "button";
-        [Parameter] public string AriaLabel { get; set; }
+        [Parameter] public string? AriaLabel { get; set; }
 
-        [Parameter] public RenderFragment ChildContent { get; set; }
-        [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object> AdditionalAttributes { get; set; }
+        [Parameter] public RenderFragment? ChildContent { get; set; }
+        [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
 
-        protected HtmlElement buttonElement;
-        private string previouslyRenderedElementId = null;
+        protected HtmlElement? buttonElement;
+        private string? previouslyRenderedElementId = null;
 
         protected override async Task OnAfterRenderAsync(bool firstRender)
         {
@@ -34,7 +34,8 @@ namespace HeadlessUI.Button
 
         private async Task EnsureInitialized()
         {
-            if (((ElementReference)buttonElement).Id != previouslyRenderedElementId)
+            if (buttonElement == null) return;
+            if (buttonElement.AsElementReference().Id != previouslyRenderedElementId)
             {
                 try
                 {
@@ -50,8 +51,10 @@ namespace HeadlessUI.Button
 
         private async Task PreventDefaultKeyBehaviorOnEnterAndSpace()
         {
+            if (jsRuntime is null || buttonElement is null) return;
+
             jsModule = await jsRuntime.InvokeAsync<IJSObjectReference>("import", "./_content/HeadlessUI/common.js");
-            await jsModule.InvokeVoidAsync("preventDefaultKeyBehaviorOnKeys", ((ElementReference)buttonElement), new List<string> { KeyboardKey.Enter, KeyboardKey.Space });
+            await jsModule.InvokeVoidAsync("preventDefaultKeyBehaviorOnKeys", buttonElement.AsElementReference(), new List<string> { KeyboardKey.Enter, KeyboardKey.Space });
         }
 
         protected async Task HandleClick(MouseEventArgs e)
@@ -79,7 +82,8 @@ namespace HeadlessUI.Button
 
         public async ValueTask DisposeAsync()
         {
-            await jsModule.InvokeVoidAsync("preventDefaultKeyBehaviorOnKeys", ((ElementReference)buttonElement), new List<string> { }, false);
+            if (jsModule is null || buttonElement is null) return;
+            await jsModule.InvokeVoidAsync("preventDefaultKeyBehaviorOnKeys", buttonElement.AsElementReference(), new List<string> { }, false);
         }
 
     }

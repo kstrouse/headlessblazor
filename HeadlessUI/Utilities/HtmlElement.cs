@@ -13,9 +13,11 @@ namespace HeadlessUI
     {
         [Parameter] public string Id { get; set; } = GenerateId();
         [Parameter] public string TagName { get; set; } = "div";
-        [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object> Attributes { get; set; }
-        [Parameter] public RenderFragment ChildContent { get; set; }
+        [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? Attributes { get; set; }
+        [Parameter] public RenderFragment? ChildContent { get; set; }
+        
         [Parameter] public List<string> PreventDefaultOn { get; set; } = new();
+        [Parameter] public List<string> StopPropagationOn { get; set; } = new();
 
         private ElementReference elementReference;
 
@@ -34,9 +36,8 @@ namespace HeadlessUI
             builder.AddMultipleAttributes(3, Attributes);
             foreach (var eventName in PreventDefaultOn.Where(s => !string.IsNullOrEmpty(s)))
                 builder.AddEventPreventDefaultAttribute(4, eventName, true);
-            //if (StopPropagationOn != null)
-            //    foreach (var eventName in StopPropagationOn.Where(s => !string.IsNullOrEmpty(s)))
-            //        builder.AddEventStopPropagationAttribute(5, eventName, true);
+            foreach (var eventName in StopPropagationOn.Where(s => !string.IsNullOrEmpty(s)))
+                builder.AddEventStopPropagationAttribute(5, eventName, true);
             builder.AddElementReferenceCapture(6, r => OnSetElementReference(r));
             builder.AddContent(6, ChildContent);
             builder.CloseElement();
@@ -45,6 +46,7 @@ namespace HeadlessUI
         public void OnSetElementReference(ElementReference reference) => elementReference = reference;
         public ValueTask FocusAsync() => elementReference.FocusAsync();
 
+        public ElementReference AsElementReference() => elementReference;
 
         public static implicit operator ElementReference(HtmlElement element) => element == null ? default : element.elementReference;
     }

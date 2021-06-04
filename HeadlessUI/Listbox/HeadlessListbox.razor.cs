@@ -12,9 +12,9 @@ namespace HeadlessUI.Listbox
 {
     public partial class HeadlessListbox<TValue> : IDisposable
     {
-        [Parameter] public RenderFragment<HeadlessListbox<TValue>> ChildContent { get; set; }
+        [Parameter] public RenderFragment<HeadlessListbox<TValue>>? ChildContent { get; set; }
 
-        [Parameter] public TValue Value { get; set; }
+        [Parameter] public TValue? Value { get; set; }
         [Parameter] public EventCallback<TValue> ValueChanged { get; set; }
 
         [Parameter] public EventCallback OnOpen { get; set; }
@@ -22,27 +22,41 @@ namespace HeadlessUI.Listbox
 
         [Parameter] public int DebouceTimeout { get; set; } = 350;
 
+        public TValue? CurrentValue
+        {
+            get => Value;
+            set
+            {
+                bool valueChanged = !EqualityComparer<TValue>.Default.Equals(Value, value);
+                if (valueChanged)
+                {
+                    Value = value;
+                    ValueChanged.InvokeAsync(value);
+                }
+            }
+        }
+
         private readonly List<HeadlessListboxOption<TValue>> options = new();
-        private HeadlessListboxOption<TValue> activeOption;
-        private ClickOffEventHandler clickOffEventHandler;
+        private HeadlessListboxOption<TValue>? activeOption;
+        private ClickOffEventHandler? clickOffEventHandler;
         private SearchAssistant searchAssistant;
 
-        private HeadlessListboxButton<TValue> buttonElement;
-        private HeadlessListboxOptions<TValue> optionsElement;
-        private HeadlessListboxLabel<TValue> labelElement;
+        private HeadlessListboxButton<TValue>? buttonElement;
+        private HeadlessListboxOptions<TValue>? optionsElement;
+        private HeadlessListboxLabel<TValue>? labelElement;
 
         public ListboxState State { get; protected set; } = ListboxState.Closed;
         public string SearchQuery => searchAssistant.SearchQuery;
 
-        public string LabelId => labelElement?.Id;
-        public string ActiveOptionId => activeOption?.Id;
-        public string ButtonElementId => buttonElement?.Id;
-        public string OptionsElementId => optionsElement?.Id;
+        public string? LabelId => labelElement?.Id;
+        public string? ActiveOptionId => activeOption?.Id;
+        public string? ButtonElementId => buttonElement?.Id;
+        public string? OptionsElementId => optionsElement?.Id;
 
         public HeadlessListbox()
         {
             searchAssistant = new SearchAssistant();
-            searchAssistant.OnChange += HandleSearchChange;
+            searchAssistant.OnChange += HandleSearchChange!;
         }
 
         protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -63,8 +77,12 @@ namespace HeadlessUI.Listbox
                     await ButtonFocusAsync();
                 }
             }
-            await clickOffEventHandler.RegisterElement(buttonElement);
-            await clickOffEventHandler.RegisterElement(optionsElement);
+
+            if (clickOffEventHandler != null)
+            {
+                await clickOffEventHandler.RegisterElement(buttonElement);
+                await clickOffEventHandler.RegisterElement(optionsElement);
+            }
         }
 
         public async Task SetValue(TValue value)
@@ -91,7 +109,7 @@ namespace HeadlessUI.Listbox
             options.Remove(option);
         }
         public bool IsActiveOption(HeadlessListboxOption<TValue> option) => activeOption == option;
-        public void GoToOption(HeadlessListboxOption<TValue> option)
+        public void GoToOption(HeadlessListboxOption<TValue>? option)
         {
             if (option != null && (!option.IsEnabled || !options.Contains(option))) option = null;
             if (activeOption == option) return;
@@ -110,20 +128,12 @@ namespace HeadlessUI.Listbox
                     }
                 case ListboxFocus.Previous:
                     {
-                        var option = FindOptionBefore(activeOption);
-                        if (activeOption == null)
-                            GoToOption(ListboxFocus.Last);
-                        else
-                            GoToOption(option);
+                        GoToOption(FindOptionBeforeActiveOption());
                         break;
                     }
                 case ListboxFocus.Next:
                     {
-                        var option = FindOptionAfter(activeOption);
-                        if (option == null)
-                            GoToOption(ListboxFocus.First);
-                        else
-                            GoToOption(option);
+                        GoToOption(FindOptionAfterActiveOption());
                         break;
                     }
                 case ListboxFocus.Last:
@@ -138,14 +148,14 @@ namespace HeadlessUI.Listbox
                     }
             }
         }
-        private HeadlessListboxOption<TValue> FindOptionBefore(HeadlessListboxOption<TValue> target)
+        private HeadlessListboxOption<TValue>? FindOptionBeforeActiveOption()
         {
             var reversedMenuOptions = options.ToList();
             reversedMenuOptions.Reverse();
             bool foundTarget = false;
             var itemIndex = reversedMenuOptions.FindIndex(0, mi =>
             {
-                if (mi == target)
+                if (mi == activeOption)
                 {
                     foundTarget = true;
                     return false;
@@ -155,14 +165,14 @@ namespace HeadlessUI.Listbox
             if (itemIndex != -1)
                 return reversedMenuOptions[itemIndex];
             else
-                return null;
+                return options.LastOrDefault(mi => mi.IsEnabled);
         }
-        private HeadlessListboxOption<TValue> FindOptionAfter(HeadlessListboxOption<TValue> target)
+        private HeadlessListboxOption<TValue>? FindOptionAfterActiveOption()
         {
             bool foundTarget = false;
             var itemIndex = options.FindIndex(0, mi =>
             {
-                if (mi == target)
+                if (mi == activeOption)
                 {
                     foundTarget = true;
                     return false;
@@ -172,7 +182,7 @@ namespace HeadlessUI.Listbox
             if (itemIndex != -1)
                 return options[itemIndex];
             else
-                return null;
+                return options.FirstOrDefault(mi => mi.IsEnabled);
         }
 
         public void RegisterButton(HeadlessListboxButton<TValue> button)
@@ -207,9 +217,9 @@ namespace HeadlessUI.Listbox
             shouldFocus = true;
             StateHasChanged();
         }
-        public ValueTask OptionsFocusAsync() => optionsElement.FocusAsync();
-        public ValueTask ButtonFocusAsync() => buttonElement.FocusAsync();
-        public Task SetActiveAsValue() => SetValue(activeOption.Value);
+        public ValueTask OptionsFocusAsync() => optionsElement?.FocusAsync() ?? ValueTask.CompletedTask;
+        public ValueTask ButtonFocusAsync() => buttonElement?.FocusAsync() ?? ValueTask.CompletedTask;
+        public void SetActiveAsValue() => CurrentValue = activeOption is null ? default : activeOption.Value;
 
         public Task HandleClickOff() => Close();
         private void HandleSearchChange(object sender, EventArgs e)

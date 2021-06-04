@@ -18,12 +18,11 @@ namespace HeadlessUI.Switch
         [Parameter] public EventCallback<bool> CheckedChanged { get; set; }
 
 
-        [Parameter] public RenderFragment ChildContent { get; set; }
-        [Parameter] public string CssClass { get; set; }
+        [Parameter] public RenderFragment? ChildContent { get; set; }
 
-        [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object> AdditionalAttributes { get; set; }
+        [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
 
-        [CascadingParameter] public HeadlessSwitchGroup Group { get; set; }
+        [CascadingParameter] public HeadlessSwitchGroup? Group { get; set; }
 
         protected bool CurrentChecked
         {

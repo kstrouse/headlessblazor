@@ -8,19 +8,19 @@ namespace HeadlessUI.Utilities
 {
     public class Transition : ComponentBase
     {
-        [Parameter] public RenderFragment<string> ChildContent { get; set; }
+        [Parameter] public RenderFragment<string?>? ChildContent { get; set; }
 
-        [Parameter] public string Enter { get; set; }
-        [Parameter] public string EnterFrom { get; set; }
-        [Parameter] public string EnterTo { get; set; }
+        [Parameter] public string? Enter { get; set; }
+        [Parameter] public string? EnterFrom { get; set; }
+        [Parameter] public string? EnterTo { get; set; }
         [Parameter] public int EnterDuration { get; set; }
-        [Parameter] public string Leave { get; set; }
-        [Parameter] public string LeaveFrom { get; set; }
-        [Parameter] public string LeaveTo { get; set; }
+        [Parameter] public string? Leave { get; set; }
+        [Parameter] public string? LeaveFrom { get; set; }
+        [Parameter] public string? LeaveTo { get; set; }
         [Parameter] public int LeaveDuration { get; set; }
         [Parameter] public bool Show { get; set; }
 
-        public string CurrentCssClass { get; private set; }
+        public string? CurrentCssClass { get; private set; }
 
         [Parameter] public EventCallback<bool> BeforeTransition { get; set; }
         [Parameter] public EventCallback<bool> AfterTransition { get; set; }
@@ -28,13 +28,18 @@ namespace HeadlessUI.Utilities
 
         public TransitionState State { get; private set; }
         private bool transitionStarted;
-        private Timer transitionTimer;
+        private Timer? transitionTimer;
         private bool stateChangeRequested;
 
         protected override async Task OnAfterRenderAsync(bool firstRender)
         {
-            if (State == TransitionState.Visible || State == TransitionState.Hidden || transitionStarted) return;
+            if (TransitionHasStartedOrCompleted()) return;
 
+            await StartTransition();
+        }
+
+        private async Task StartTransition()
+        {
             transitionStarted = true;
 
             //Not sure why this is required when showing but I am guessing it allows blazor to finish the actual
@@ -49,6 +54,8 @@ namespace HeadlessUI.Utilities
             StartTransitionTimer();
             StateHasChanged();
         }
+
+        private bool TransitionHasStartedOrCompleted() => State == TransitionState.Visible || State == TransitionState.Hidden || transitionStarted;
 
         private void StartTransitionTimer()
         {
@@ -80,9 +87,12 @@ namespace HeadlessUI.Utilities
 
         public override Task SetParametersAsync(ParameterView parameters)
         {
-            var newShowValue = parameters.GetValueOrDefault<bool>(nameof(Show));
-            stateChangeRequested = newShowValue != Show;
-            return base.SetParametersAsync(parameters);
+            var currentShowValue = Show;            
+
+            parameters.SetParameterProperties(this);            
+            stateChangeRequested = currentShowValue != Show;
+
+            return base.SetParametersAsync(ParameterView.Empty);
         }
 
         protected override void OnParametersSet()
