@@ -22,5 +22,9 @@
 	<ItemGroup>
 	  <ProjectReference Include="..\HeadlessUI\HeadlessUI.csproj" />
 	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Utilities\" />
+	</ItemGroup>
 	
 </Project>

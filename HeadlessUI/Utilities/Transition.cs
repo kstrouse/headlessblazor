@@ -22,9 +22,10 @@ namespace HeadlessUI.Utilities
 
         public string? CurrentCssClass { get; private set; }
 
-        [Parameter] public EventCallback<bool> BeforeTransition { get; set; }
-        [Parameter] public EventCallback<bool> AfterTransition { get; set; }
+        [Parameter] public EventCallback<bool> EndTransition { get; set; }
+        [Parameter] public EventCallback<bool> BeginTransition { get; set; }
 
+        [CascadingParameter] public TransitionGroup? TransitionGroup { get; set; }
 
         public TransitionState State { get; private set; }
         private bool transitionStarted;
@@ -34,7 +35,6 @@ namespace HeadlessUI.Utilities
         protected override async Task OnAfterRenderAsync(bool firstRender)
         {
             if (TransitionHasStartedOrCompleted()) return;
-
             await StartTransition();
         }
 
@@ -44,12 +44,11 @@ namespace HeadlessUI.Utilities
 
             //Not sure why this is required when showing but I am guessing it allows blazor to finish the actual
             //dom manipulation of adding the item to the page before we start a new state
-            if (State == TransitionState.Entering)
-                await Task.Yield();
+            await Task.Yield();
 
             CurrentCssClass = State == TransitionState.Entering ? $"{Enter} {EnterTo}" : $"{Leave} {LeaveTo}";
 
-            await BeforeTransition.InvokeAsync();
+            EndTransition.InvokeAsync();
 
             StartTransitionTimer();
             StateHasChanged();
@@ -65,12 +64,13 @@ namespace HeadlessUI.Utilities
             transitionTimer.Enabled = true;
         }
 
-        private async void OnEndTransition(object source, ElapsedEventArgs e)
+        private void OnEndTransition(object source, ElapsedEventArgs e)
         {
             State = State == TransitionState.Entering ? TransitionState.Visible : TransitionState.Hidden;
             ClearCurrentTransition();
 
-            await AfterTransition.InvokeAsync();
+            TransitionGroup?.NotifyEndTransition();
+            BeginTransition.InvokeAsync();
 
             StateHasChanged();
         }
@@ -89,12 +89,13 @@ namespace HeadlessUI.Utilities
         {
             var currentShowValue = Show;            
 
-            parameters.SetParameterProperties(this);            
+            parameters.SetParameterProperties(this);
+            
+            Show = TransitionGroup?.Show ?? Show;
             stateChangeRequested = currentShowValue != Show;
 
             return base.SetParametersAsync(ParameterView.Empty);
         }
-
         protected override void OnParametersSet()
         {
             if (!stateChangeRequested) return;
@@ -106,6 +107,7 @@ namespace HeadlessUI.Utilities
             else
                 InitializeLeaving();
         }
+        protected override void OnInitialized() => TransitionGroup?.RegisterTransition(this);
 
         private void InitializeEntering()
         {
