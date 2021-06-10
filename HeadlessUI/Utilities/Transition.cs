@@ -8,6 +8,8 @@ namespace HeadlessUI.Utilities
 {
     public class Transition : ComponentBase
     {
+        [CascadingParameter] public TransitionGroup? TransitionGroup { get; set; }
+
         [Parameter] public RenderFragment<string?>? ChildContent { get; set; }
 
         [Parameter] public string? Enter { get; set; }
@@ -20,14 +22,12 @@ namespace HeadlessUI.Utilities
         [Parameter] public int LeaveDuration { get; set; }
         [Parameter] public bool Show { get; set; }
 
-        public string? CurrentCssClass { get; private set; }
-
-        [Parameter] public EventCallback<bool> EndTransition { get; set; }
         [Parameter] public EventCallback<bool> BeginTransition { get; set; }
-
-        [CascadingParameter] public TransitionGroup? TransitionGroup { get; set; }
+        [Parameter] public EventCallback<bool> EndTransition { get; set; }
 
         public TransitionState State { get; private set; }
+        public string? CurrentCssClass { get; private set; }
+
         private bool transitionStarted;
         private Timer? transitionTimer;
         private bool stateChangeRequested;
@@ -48,7 +48,7 @@ namespace HeadlessUI.Utilities
 
             CurrentCssClass = State == TransitionState.Entering ? $"{Enter} {EnterTo}" : $"{Leave} {LeaveTo}";
 
-            EndTransition.InvokeAsync();
+            BeginTransition.InvokeAsync();
 
             StartTransitionTimer();
             StateHasChanged();
@@ -70,7 +70,7 @@ namespace HeadlessUI.Utilities
             ClearCurrentTransition();
 
             TransitionGroup?.NotifyEndTransition();
-            BeginTransition.InvokeAsync();
+            EndTransition.InvokeAsync();
 
             StateHasChanged();
         }
