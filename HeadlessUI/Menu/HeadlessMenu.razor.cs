@@ -68,15 +68,10 @@ namespace HeadlessUI.Menu
         {
             if (!menuItems.Contains(item)) return;
 
-            if (!IsActiveItem(item))
-            {
-                menuItems.Remove(item);
-                return;
-            }
+            if (IsActiveItem(item))
+                GoToItem(MenuFocus.Next);
 
-            GoToItem(MenuFocus.Next);
-            if (activeItem == null)
-                GoToItem(MenuFocus.First);
+            menuItems.Remove(item);
         }
         public bool IsActiveItem(HeadlessMenuItem item) => activeItem == item;
         public void GoToItem(HeadlessMenuItem? item)
